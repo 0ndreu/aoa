@@ -1,0 +1,13 @@
+*.exe
+*.test
+*.out
+*.prof
+
+.idea/
+.vscode/
+
+.env
+*.local
+
+coverage.out
+coverage.html

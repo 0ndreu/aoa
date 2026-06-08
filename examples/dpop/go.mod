@@ -1,8 +1,13 @@
-module github.com/0ndreu/aoa
+module github.com/0ndreu/aoa/examples/dpop
 
-go 1.25.0
+go 1.26.3
 
-require github.com/lestrrat-go/jwx/v3 v3.1.1
+replace github.com/0ndreu/aoa => ../..
+
+require (
+	github.com/0ndreu/aoa v0.0.0-00010101000000-000000000000
+	github.com/lestrrat-go/jwx/v3 v3.1.1
+)
 
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1 // indirect

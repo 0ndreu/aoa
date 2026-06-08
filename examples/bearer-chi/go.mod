@@ -1,8 +1,13 @@
-module github.com/0ndreu/aoa
+module github.com/0ndreu/aoa/examples/bearer-chi
 
-go 1.25.0
+go 1.26.3
 
-require github.com/lestrrat-go/jwx/v3 v3.1.1
+replace github.com/0ndreu/aoa => ../..
+
+require (
+	github.com/0ndreu/aoa v0.0.0-00010101000000-000000000000
+	github.com/go-chi/chi/v5 v5.3.0
+)
 
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1 // indirect
@@ -12,6 +17,7 @@ require (
 	github.com/lestrrat-go/dsig-secp256k1 v1.0.0 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc/v3 v3.0.5 // indirect
+	github.com/lestrrat-go/jwx/v3 v3.1.1 // indirect
 	github.com/lestrrat-go/option/v2 v2.0.0 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/valyala/fastjson v1.6.10 // indirect
