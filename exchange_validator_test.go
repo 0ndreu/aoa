@@ -266,7 +266,7 @@ func TestValidate_NoConfiguredAudienceAcceptsAny(t *testing.T) {
 
 func TestValidate_MalformedMayActFailsClosed(t *testing.T) {
 	s := jwktest.NewRSASigner(t, "k1")
-	// may_act is a string (not an object) - malformed; must fail closed
+	// may_act is a string, not an object: malformed, so it must fail closed
 	subj := s.SignClaims(t, map[string]any{
 		"sub": "alice", "iss": valIss, "exp": time.Now().Add(time.Hour).Unix(),
 		"may_act": "not-an-object",

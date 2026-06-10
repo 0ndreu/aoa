@@ -16,7 +16,7 @@ import (
 
 // redisReplay records each jti with SET NX PX: the first writer succeeds
 // (not a replay); a subsequent SET NX for the same jti fails (a replay), until
-// the key's TTL expires. Atomic and shared across all RS instances.
+// the key's TTL expires. The operation is atomic and shared across all RS instances.
 type redisReplay struct {
 	rdb    *redis.Client
 	prefix string

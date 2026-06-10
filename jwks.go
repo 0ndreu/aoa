@@ -67,8 +67,8 @@ func (r *remoteKeySource) refresh(ctx context.Context) (jwk.Set, error) {
 		set, err := r.set, r.lastErr
 		r.mu.Unlock()
 		// mirror the leader's outcome: if the in-flight fetch failed, every
-		// joiner fails too. Otherwise, some callers would pass on a stale set
-		// while the leader returns 401 - split outcomes for the same keys.
+		// joiner fails too. Otherwise some callers would pass on a stale set
+		// while the leader returns 401, giving split outcomes for the same keys.
 		if err != nil {
 			return nil, fmt.Errorf("aoa: jwks refresh failed: %w", err)
 		}

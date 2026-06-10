@@ -36,7 +36,7 @@ func (d *discovery) tokenEndpoint(ctx context.Context, issuer string) (string, e
 	// metaURL is built by appending the well-known suffix to the issuer
 	// (OIDC-Discovery style), which is what Keycloak/Auth0/Okta serve. The strict
 	// RFC 8414 par.3.1 form for a path-bearing issuer inserts the suffix between host
-	// and path; that variant is not attempted here - for such an AS, configure
+	// and path; that variant is not attempted here. For such an AS, configure
 	// ExchangeConfig.TokenEndpoint explicitly instead of Issuer.
 	metaURL := strings.TrimRight(issuer, "/") + "/.well-known/oauth-authorization-server"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, metaURL, nil)

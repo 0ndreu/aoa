@@ -13,9 +13,9 @@ import (
 // is mounted.
 //
 // Note: only GET/HEAD (and OPTIONS when opts.EnableCORS is set) are registered,
-// so chi answers any other method with its own 405 before the handler runs -
-// the handler's internal 405 branch is therefore unreachable under chi (it
-// still applies when the handler is mounted directly on net/http).
+// so chi answers any other method with its own 405 before the handler runs.
+// The handler's internal 405 branch is therefore unreachable under chi; it
+// still applies when the handler is mounted directly on net/http.
 func Mount(r chi.Router, meta aoa.ProtectedResourceMetadata, opts aoa.HandlerOptions) error {
 	h, err := aoa.NewMetadataHandler(meta, opts)
 	if err != nil {

@@ -70,7 +70,7 @@ func TestRemoteKeySource_UnreachableErrors(t *testing.T) {
 
 // Regression: when a refresh fails, joiners must not return the stale cached
 // set as if the fetch succeeded. Otherwise concurrent requests get split
-// outcomes - the leader returns 401 while joiners pass on stale keys.
+// outcomes: the leader returns 401 while joiners pass on stale keys.
 func TestRemoteKeySource_FailedRefreshNoStaleLeak(t *testing.T) {
 	s := jwktest.NewRSASigner(t, "kid-old")
 	rs := newRemoteKeySource("http://127.0.0.1:1/jwks.json", time.Minute)

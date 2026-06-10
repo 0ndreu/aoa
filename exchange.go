@@ -30,8 +30,8 @@ type ExchangeConfig struct {
 	ClientAuth    ClientAuth // required; how the client authenticates
 	// HTTPClient is an optional HTTP client for mTLS, timeouts, and proxy
 	// configuration. The default client does NOT follow redirects from the token
-	// endpoint (credentials - including subject_token, client_secret, and
-	// client_assertion - must not be replayed to a redirected host). A custom
+	// endpoint: credentials (subject_token, client_secret, client_assertion) must
+	// not be replayed to a redirected host. A custom
 	// client SHOULD set CheckRedirect to return http.ErrUseLastResponse to
 	// preserve this security property.
 	HTTPClient *http.Client
@@ -143,8 +143,8 @@ func (x *TokenExchanger) resolveEndpoint(ctx context.Context) (string, error) {
 	return x.discovery.tokenEndpoint(ctx, x.issuer)
 }
 
-// buildExchangeForm assembles the RFC 8693 form parameters (no client auth, no
-// DPoP - those are layered on in do).
+// buildExchangeForm assembles the RFC 8693 form parameters. Client auth and DPoP
+// are layered on in do, not here.
 func buildExchangeForm(req ExchangeRequest) url.Values {
 	form := url.Values{}
 	form.Set("grant_type", grantTypeTokenExchange)

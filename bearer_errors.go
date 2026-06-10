@@ -45,13 +45,13 @@ func errInsufficientScope(required []string) *authError {
 	}
 }
 
-// errDPoPRequired: DPoPRequired mode, no/Bearer token presented - tell the
-// client to use DPoP. No error code (mirrors the no-token Bearer challenge).
+// errDPoPRequired: DPoPRequired mode, no token or a Bearer token presented.
+// Tells the client to use DPoP. No error code (mirrors the no-token Bearer challenge).
 func errDPoPRequired(algs []string) *authError {
 	return &authError{status: http.StatusUnauthorized, scheme: "DPoP", algs: algs}
 }
 
-// errNoTokenDPoPOptional: Optional mode, no token at all - advertise both schemes.
+// errNoTokenDPoPOptional: Optional mode, no token at all. Advertises both schemes.
 func errNoTokenDPoPOptional(algs []string) *authError {
 	return &authError{status: http.StatusUnauthorized, scheme: "DPoP", algs: algs, withBearer: true}
 }

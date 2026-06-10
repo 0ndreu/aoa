@@ -37,7 +37,7 @@ type HTTPContext struct {
 }
 
 // EventKind identifies the kind of audit event. Consumers MUST tolerate unknown
-// values (treat as informational) - new kinds may be added in minor versions.
+// values (treat as informational); new kinds may be added in minor versions.
 type EventKind string
 
 const (

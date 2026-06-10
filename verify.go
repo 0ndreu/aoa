@@ -29,7 +29,7 @@ func (e *verifyError) Error() string { return e.reason }
 // tokenVerifier performs the JOSE-level access-token checks shared by the Bearer
 // middleware and the token-exchange validator: header parse, alg allowlist, key
 // lookup by kid, signature verification, and issuer/expiry/nbf/iat validation.
-// It does NOT check audience, scopes, or DPoP binding - those are caller policy.
+// It does NOT check audience, scopes, or DPoP binding; those are caller policy.
 type tokenVerifier struct {
 	keys   keySource
 	issuer string

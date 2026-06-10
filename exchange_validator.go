@@ -31,8 +31,8 @@ type ExchangeValidatorOptions struct {
 	// INBOUND subject/actor tokens (this STS's own identifier(s)). A token whose
 	// aud does not intersect Audience is rejected (RFC 9700 audience restriction;
 	// prevents a token minted for another resource from being exchanged here).
-	// When empty, tokens for ANY audience from the trusted issuer are accepted -
-	// a deployment risk the consumer MUST mitigate (e.g. via Policy). Strongly
+	// When empty, tokens for ANY audience from the trusted issuer are accepted, a
+	// deployment risk the consumer MUST mitigate (e.g. via Policy). Strongly
 	// recommended to set this.
 	Audience []string
 }
@@ -176,7 +176,7 @@ func (v *ExchangeValidator) emit(ctx context.Context, ev Event) {
 }
 
 // mayActAllows reports whether actorSub may act for subject. If the subject has
-// no may_act claim, any actor (or none) is allowed - authorization then falls to
+// no may_act claim, any actor (or none) is allowed and authorization falls to
 // the policy hook. If may_act is present, it must parse and its sub must equal
 // actorSub; a present-but-unparseable may_act fails closed (deny).
 func mayActAllows(subject *Claims, actorSub string) bool {
@@ -209,8 +209,8 @@ func buildActChain(actorSub string, subject *Claims) map[string]any {
 }
 
 // IssuedToken is a token the consumer signed from an ExchangeGrant, to be
-// written as the RFC 8693 response. aoa does not sign - AccessToken is provided
-// by the caller.
+// written as the RFC 8693 response. aoa does not sign; the caller provides
+// AccessToken.
 type IssuedToken struct {
 	AccessToken     string
 	IssuedTokenType TokenType

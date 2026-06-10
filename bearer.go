@@ -18,7 +18,7 @@ import (
 // DPoPMode controls DPoP enforcement (RFC 9449)
 //
 // Regardless of mode, a sender-constrained access token (one carrying cnf.jkt)
-// is never accepted as a plain Bearer token - presenting one as Bearer always
+// is never accepted as a plain Bearer token. Presenting one as Bearer always
 // yields 401. The modes differ only in how they treat un-bound tokens:
 //   - DPoPOff: DPoP proofs are not processed; un-bound Bearer tokens are
 //     accepted. The DPoP scheme is unrecognized.
@@ -344,11 +344,11 @@ func (m *bearerMW) authenticate(w http.ResponseWriter, r *http.Request) (claims 
 // emits the dpop_verified event for a DPoP-scheme request).
 func (m *bearerMW) enforceDPoP(w http.ResponseWriter, r *http.Request, raw string, claims *Claims, scheme string) bool {
 	if m.dpopMode == DPoPOff {
-		// the load-bearing rule holds even when DPoP enforcement is off: a
+		// The core rule still holds even when DPoP enforcement is off: a
 		// sender-constrained token (one carrying cnf.jkt) is never honored as
-		// a plain Bearer token (RFC 9449 par.7.1) - that is the downgrade attack
+		// a plain Bearer token (RFC 9449 par.7.1). That is the downgrade attack
 		// DPoP exists to prevent. The proof cannot be verified in Off mode
-		// (the DPoP machinery is not configured), so such a request is simply
+		// (the DPoP machinery is not configured), so such a request is
 		// rejected with a DPoP challenge. Un-bound tokens are unaffected.
 		if claims.boundKeyThumbprint() != "" {
 			ae := errWrongScheme(m.dpopAlgsList)

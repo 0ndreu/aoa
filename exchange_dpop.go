@@ -52,7 +52,7 @@ func (k DPoPKey) thumbprint() string { return k.jkt }
 
 // proofFor mints a token-endpoint DPoP proof: typ=dpop+jwt, htm, htu (query and
 // fragment must already be stripped by the caller), fresh jti, iat=now, and the
-// embedded public jwk. No ath - no access token is presented at this endpoint.
+// embedded public jwk. No ath, since no access token is presented at this endpoint.
 // nonce, when non-empty, is included (use_dpop_nonce retry).
 func (k DPoPKey) proofFor(htm, htu, nonce string) (string, error) {
 	payload := map[string]any{

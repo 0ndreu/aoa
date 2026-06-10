@@ -14,7 +14,7 @@ import (
 // Authorization scheme used for the access token ("Bearer" or "DPoP"), already
 // normalized to its canonical form by extractToken.
 //
-// The load-bearing rule (RFC 9449 par.7.1): a token carrying cnf.jkt is
+// The core rule (RFC 9449 par.7.1): a token carrying cnf.jkt is
 // sender-constrained and is NEVER accepted as plain Bearer, in any mode.
 // Enforcement for Optional/Required modes lives here; the DPoPOff case is
 // gated in (*bearerMW).enforceDPoP, which never reaches here.

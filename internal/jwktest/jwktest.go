@@ -77,8 +77,8 @@ func NewECSigner(t *testing.T, kid string) *Signer {
 }
 
 // Thumbprint returns the base64url RFC 7638 SHA-256 thumbprint of the signer's
-// public key - the value an authorization server puts in an access token's
-// cnf.jkt to bind it to this key.
+// public key. This is the value an authorization server puts in an access
+// token's cnf.jkt to bind it to this key.
 func (s *Signer) Thumbprint(t *testing.T) string {
 	t.Helper()
 	tp, err := s.public.Thumbprint(crypto.SHA256)
@@ -186,7 +186,7 @@ func (s *Signer) Sign(t *testing.T, b *jwt.Builder) []byte {
 	return signed
 }
 
-// SignRaw signs arbitrary header/payload - used to mint malformed/alg=none tokens.
+// SignRaw signs an arbitrary header and payload, used to mint malformed or alg=none tokens.
 func (s *Signer) SignRaw(t *testing.T, payload []byte) []byte {
 	t.Helper()
 	signed, err := jws.Sign(payload, jws.WithKey(jwa.RS256(), s.private))
@@ -277,7 +277,7 @@ func HS256Token(t *testing.T, secret []byte, b *jwt.Builder) string {
 	return string(signed)
 }
 
-// NoneToken builds an unsecured ("alg":"none") JWT from raw JSON claims - an
+// NoneToken builds an unsecured ("alg":"none") JWT from raw JSON claims: an
 // attacker token with no signature. Used to verify it is rejected.
 func NoneToken(claimsJSON string) string {
 	hdr := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"none","typ":"JWT"}`))

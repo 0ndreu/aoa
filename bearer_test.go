@@ -460,8 +460,8 @@ func TestRequireBearer_EndToEndDPoP(t *testing.T) {
 	}
 }
 
-// TestRequireBearer_DPoPOffRejectsBoundTokenAsBearer pins the load-bearing rule
-// in DPoPOff (the default): a sender-constrained token (carrying cnf.jkt) is
+// TestRequireBearer_DPoPOffRejectsBoundTokenAsBearer pins the rule for
+// DPoPOff (the default): a sender-constrained token (carrying cnf.jkt) is
 // never accepted as a plain Bearer token, even when DPoP enforcement is off.
 // an un-bound token must still be accepted as Bearer.
 func TestRequireBearer_DPoPOffRejectsBoundTokenAsBearer(t *testing.T) {
