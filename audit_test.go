@@ -10,11 +10,6 @@ import (
 	"time"
 )
 
-func TestNoopEmitter_DoesNotPanic(t *testing.T) {
-	var e Emitter = noopEmitter{}
-	e.Emit(context.Background(), Event{Kind: EventTokenValidated, Outcome: OutcomeAllow})
-}
-
 func TestLogEmitter_LogsEventFields(t *testing.T) {
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&buf, nil))

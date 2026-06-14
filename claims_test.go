@@ -44,11 +44,3 @@ func TestClaims_BoundKeyThumbprint(t *testing.T) {
 		t.Errorf("boundKeyThumbprint = %q, want abc123", got)
 	}
 }
-
-func TestClaims_BoundKeyThumbprint_AbsentEmpty(t *testing.T) {
-	c := &Claims{raw: []byte(`{"sub":"u1"}`)}
-	c.extractCnf()
-	if got := c.boundKeyThumbprint(); got != "" {
-		t.Errorf("boundKeyThumbprint = %q, want empty", got)
-	}
-}

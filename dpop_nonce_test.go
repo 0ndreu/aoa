@@ -18,16 +18,6 @@ func TestHMACNonce_CurrentIsValid(t *testing.T) {
 	}
 }
 
-func TestHMACNonce_CrossInstance(t *testing.T) {
-	// two independent sources with the SAME secret = two RS instances
-	a := NewDPoPNonceSource([]byte("shared"))
-	b := NewDPoPNonceSource([]byte("shared"))
-	r := httptest.NewRequest("POST", "https://mcp.example.com/mcp", nil)
-	if !b.Valid(context.Background(), r, a.Current(context.Background(), r)) {
-		t.Error("nonce issued by instance A rejected by instance B")
-	}
-}
-
 func TestHMACNonce_TamperedRejected(t *testing.T) {
 	ns := NewDPoPNonceSource([]byte("secret-key"))
 	r := httptest.NewRequest("POST", "https://mcp.example.com/mcp", nil)

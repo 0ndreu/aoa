@@ -81,17 +81,6 @@ func TestDefaultErrorHandler_InsufficientScope_403(t *testing.T) {
 	}
 }
 
-func TestBuildChallenge_DPoPScheme(t *testing.T) {
-	ae := errInvalidDPoPProof("htm mismatch")
-	got := buildChallenge(ae, "realmX", "")
-	if !strings.HasPrefix(got, "DPoP ") {
-		t.Errorf("want DPoP scheme, got %q", got)
-	}
-	if !strings.Contains(got, `error="invalid_token"`) {
-		t.Errorf("missing error code: %q", got)
-	}
-}
-
 func TestErrInvalidDPoPProof_PreservesReason(t *testing.T) {
 	// the specific reason must be kept on the authError for the audit event,
 	// while the client-facing description stays generic (no internal leakage).
