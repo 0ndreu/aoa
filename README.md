@@ -1,5 +1,10 @@
 # agentOAuth
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/0ndreu/aoa.svg)](https://pkg.go.dev/github.com/0ndreu/aoa)
+[![Go Report Card](https://goreportcard.com/badge/github.com/0ndreu/aoa)](https://goreportcard.com/report/github.com/0ndreu/aoa)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/0ndreu/aoa)](go.mod)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 > OAuth 2.1 building blocks for MCP servers, written in Go.
 
 ```go
@@ -8,9 +13,9 @@ import "github.com/0ndreu/aoa"
 
 ## Why
 
-The official [modelcontextprotocol/go-sdk](https://github.com/modelcontextprotocol/go-sdk) gives you an MCP server. It doesn't give you the OAuth machinery the MCP authorization spec expects in front of one, and it leaves the harder RFCs experimental.
+The official [modelcontextprotocol/go-sdk](https://github.com/modelcontextprotocol/go-sdk) ships server-side auth (`RequireBearerToken`, a `TokenVerifier` interface, and RFC 9728 metadata) but does **no token validation itself**. The `TokenVerifier` is a bare callback the SDK hands the raw token: signature verification, `alg:none`/`HS*`-confusion defense, JWKS fetch/cache, `iss`, audience binding, and `exp`/`nbf` are all your job. That hand-rolled verifier is exactly where alg-confusion auth-bypass bugs come from.
 
-`aoa` fills that gap. It complements the SDK rather than replacing it: drop these handlers and middleware in front of your MCP endpoints and you get the full discovery-and-authorization loop the spec mandates (OAuth 2.1, RFC 9728, RFC 8707, PKCE), plus the sender-constraint and delegation RFCs (DPoP, Token Exchange) that most stacks treat as out of scope.
+`aoa` **is** that verifier, done fail-closed. Drop it into the SDK's `RequireBearerToken` seam and get hardened JWT validation and audience binding for free. On top of the mandatory resource-server loop (RFC 9728 metadata + RFC 6750/8707 Bearer), it adds the two RFCs the SDK has no support for at all: **DPoP** (RFC 9449, sender-constrained tokens) and **Token Exchange** (RFC 8693, delegation). It complements the SDK rather than replacing it.
 
 Design principles:
 
@@ -52,6 +57,23 @@ The MCP authorization spec mandates only the first two; the rest are opt-in.
 | **DPoP** (RFC 9449) | You want sender-constrained tokens, so a stolen token is useless without the client's key. Opt in via the `DPoP` field. | No |
 | **Token Exchange** (RFC 8693) | You run a gateway that must act on a user's behalf downstream with a downscoped token (delegation or impersonation). | No |
 
+### How it compares to the SDK's `auth`
+
+The official SDK does header extraction and a scope/expiry check, then delegates everything cryptographic to a `TokenVerifier` you supply. `aoa` is that verifier, hardened.
+
+| | official `go-sdk` `auth` | `aoa` |
+|---|:---:|:---:|
+| Bearer extraction + scope check | ✅ | ✅ |
+| RFC 9728 protected-resource metadata | ✅ | ✅ |
+| Signature verification | ❌ (you write the `TokenVerifier`) | ✅ |
+| `alg:none` / `HS*`-confusion defense | ❌ | ✅ |
+| JWKS fetch + cache, `kid` lookup | ❌ | ✅ |
+| `iss` / `nbf` / audience (RFC 8707) validation | ❌ | ✅ |
+| DPoP (RFC 9449) | ❌ | ✅ |
+| Token Exchange (RFC 8693) | ❌ | ✅ |
+
+Plug `aoa` into the SDK's `RequireBearerToken` rather than replacing it.
+
 ## Status
 
 | RFC | What | Status |
@@ -69,9 +91,11 @@ go get github.com/0ndreu/aoa@latest
 
 Requires Go 1.25+.
 
+> **Stability:** `aoa` is pre-1.0 (`v0.x`). The API may change between minor versions until `v1.0.0`; breaking changes bump the minor version and are noted in release notes. Report security issues via [`SECURITY.md`](SECURITY.md).
+
 ## Usage
 
-The pieces compose: serve metadata so clients can discover your authorization server, guard your MCP routes with the Bearer/DPoP middleware, and, if you run a gateway, exchange tokens for downscoped downstream credentials.
+Serve metadata so clients can discover your authorization server, guard your MCP routes with the Bearer/DPoP middleware, and, if you run a gateway, exchange tokens for downscoped downstream credentials.
 
 ### 1. Protected Resource Metadata (RFC 9728)
 
@@ -325,11 +349,9 @@ Runnable programs under [`examples/`](examples/):
 
 `aoa` validates standard OAuth 2.1 / JOSE artifacts, so it works with any spec-compliant authorization server. Concretely:
 
-- **Keycloak 26.2**: integration-tested end-to-end. `make integration` spins it up via [`integration/docker-compose.yml`](integration/docker-compose.yml) and runs the RFC 8693 exchange against a live server ([`integration/keycloak_test.go`](integration/keycloak_test.go)).
+- **Keycloak 26.2**: validated end-to-end by the standalone [`aoa-conformance`](https://github.com/0ndreu/aoa-conformance) suite (RFC 9728 discovery, Bearer/DPoP challenges, and the RFC 8693 exchange against a live server). See its [Keycloak pipeline](https://github.com/0ndreu/aoa-conformance/blob/main/docs/keycloak-stack.md).
 - **Auth0 / Okta** and other IdPs that publish JWKS without an `alg` on each key are handled: the algorithm is inferred from the key type, so alg-less JWKS verify correctly instead of rejecting everything.
 - Anything exposing a standard JWKS endpoint (set `JWKSURI`) or RFC 8414 metadata (set `Issuer` for discovery) should work; pin the accepted signature algorithms with `AllowedAlgorithms` for defense in depth.
-
-The full multi-provider conformance suite lands in a later phase (see Roadmap).
 
 ## Security
 
@@ -342,22 +364,37 @@ The full multi-provider conformance suite lands in a later phase (see Roadmap).
 - **Credential exfiltration**: the token-exchange client doesn't follow redirects from the token endpoint, so credentials (`subject_token`, `client_secret`, `client_assertion`) are never replayed to a redirected host. A custom `HTTPClient` should preserve this with `CheckRedirect: http.ErrUseLastResponse`.
 - **Exchange audience restriction**: set `ExchangeValidatorOptions.Audience` to your STS's own identifier(s) so a token minted for another resource cannot be exchanged at your endpoint (RFC 9700).
 
-These properties are covered by the test suite, including adversarial cases. The cross-provider conformance suite (Roadmap) extends this against real authorization servers.
+These properties are covered by the test suite, including adversarial cases.
 
 > ⚠️ `aoa` is pre-release and has not yet had an external security audit. Review it for your own threat model before production use.
 
+### What's tested
+
+- **Validation matrix (unit):** alg-confusion (`none`, `HS*` against an asymmetric key), `exp`/`nbf`/`iss`/`aud`, spoofed `kid`, malformed tokens, DPoP proof + `cnf.jkt` binding, `jti` replay, and the RFC 8693 grant / `may_act` logic, including adversarial cases.
+- **Fuzzing:** the four highest-risk components (the JWT header reader, the DPoP proof parser, the replay cache, and the token-exchange request parser) have Go native fuzz tests (`Fuzz*`). Their seed corpora run on every `go test`.
+- **Integration / conformance:** validated end-to-end against live Keycloak 26.2 by the standalone [`aoa-conformance`](https://github.com/0ndreu/aoa-conformance) suite (RFC 9728 discovery, Bearer/DPoP challenges, RFC 8693 exchange, agent-loop). The client/server exchange logic is additionally unit-tested with httptest mocks.
+
 ### Reporting a vulnerability
 
-Please report security issues **privately** via GitHub's [Report a vulnerability](https://github.com/0ndreu/aoa/security/advisories/new) (Security Advisories) rather than opening a public issue.
+Please report security issues **privately**: see [`SECURITY.md`](SECURITY.md). Do not open a public issue for a vulnerability.
 
-## Roadmap
+## Implemented
 
-- [x] RFC 9728 Protected Resource Metadata
-- [x] Bearer middleware (RFC 6750) + RFC 8707 audience + scopes; `WWW-Authenticate` PRM discovery; net/http + chi examples
-- [x] DPoP (RFC 9449): sender-constrained tokens; proof verification + `cnf.jkt` binding; `jti` replay cache (pluggable) + stateless HMAC nonce
-- [x] OAuth 2.0 Token Exchange (RFC 8693): client `TokenExchanger` + server-side `ExchangeValidator`
-- [ ] Conformance suite
-- [ ] Launch
+- RFC 9728 Protected Resource Metadata
+- RFC 6750 Bearer middleware + RFC 8707 audience + scopes; `WWW-Authenticate` PRM discovery; net/http + chi examples
+- RFC 9449 DPoP: sender-constrained tokens; proof verification + `cnf.jkt` binding; `jti` replay cache (pluggable) + stateless HMAC nonce
+- RFC 8693 OAuth 2.0 Token Exchange: client `TokenExchanger` + server-side `ExchangeValidator`
+
+## Contributing
+
+Issues and PRs welcome. Run the suite locally:
+
+```bash
+go test -race ./...        # unit tests + fuzz seed corpora
+golangci-lint run ./...    # lint
+```
+
+Live Keycloak conformance testing lives in the separate [`aoa-conformance`](https://github.com/0ndreu/aoa-conformance) repo. For security issues, follow [`SECURITY.md`](SECURITY.md) (private disclosure) rather than opening a public issue.
 
 ## License
 
